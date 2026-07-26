@@ -938,9 +938,9 @@ main.discovered .detail-label {
 	.voronoi-canvas,
 	.grain-overlay {
 		clip-path: inset(
-			136px
+			calc(50svh - min(120.54vw, calc(100svh - 150px), 618px) / 2)
 			calc((100vw - min(76vw, calc((100svh - 150px) * 0.6305), 390px)) / 2)
-			calc(100svh - 136px - min(120.54vw, calc(100svh - 150px), 618px))
+			calc(50svh - min(120.54vw, calc(100svh - 150px), 618px) / 2)
 			calc((100vw - min(76vw, calc((100svh - 150px) * 0.6305), 390px)) / 2)
 			round 24px
 		);
@@ -1003,9 +1003,9 @@ main.discovered .detail-label {
 	.voronoi-canvas,
 	.grain-overlay {
 		clip-path: inset(
-			112px
+			calc(50svh - min(79.3vw, calc(100svh - 132px), 476px) / 2)
 			calc((100vw - min(50vw, calc((100svh - 132px) * 0.6305), 300px)) / 2)
-			calc(100svh - 112px - min(79.3vw, calc(100svh - 132px), 476px))
+			calc(50svh - min(79.3vw, calc(100svh - 132px), 476px) / 2)
 			calc((100vw - min(50vw, calc((100svh - 132px) * 0.6305), 300px)) / 2)
 			round 24px
 		);

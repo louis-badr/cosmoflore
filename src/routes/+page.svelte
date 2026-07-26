@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { base } from '$app/paths';
+	import { siteContent } from '$lib/content';
 
 	type Point = { x: number; y: number };
 	type Cell = Point & { homeX: number; homeY: number; phase: number; minDistance: number };
@@ -9,6 +10,8 @@
 	let comingSoon = $state(false);
 	let activeTab = $state<'specimens' | 'chronicle' | 'about'>('specimens');
 	let discovered = $state(false);
+	let interestEmail = $state('');
+	let interestSubmitted = $state(false);
 
 	function selectTab(tab: 'specimens' | 'chronicle' | 'about') {
 		if (tab !== 'specimens') discovered = false;
@@ -311,39 +314,88 @@
 </script>
 
 <svelte:head>
-	<title></title>
+	<title>{siteContent.brand}</title>
 	<meta name="theme-color" content="#071a33" />
 </svelte:head>
 
 <main class:discovered={activeTab === 'specimens' && discovered}>
 	<div class="night-sky" aria-hidden="true"><i></i><i></i><i></i></div>
-	<h1>cosmoflore</h1>
+	<h1>{siteContent.brand}</h1>
 	<nav class="tabs" aria-label="Main sections">
-		<button class:active={activeTab === 'specimens'} aria-pressed={activeTab === 'specimens'} onclick={() => selectTab('specimens')}>specimens</button>
-		<button class:active={activeTab === 'chronicle'} aria-pressed={activeTab === 'chronicle'} onclick={() => selectTab('chronicle')}>chronicle</button>
-		<button class:active={activeTab === 'about'} aria-pressed={activeTab === 'about'} onclick={() => selectTab('about')}>about</button>
+		<button class:active={activeTab === 'specimens'} aria-pressed={activeTab === 'specimens'} onclick={() => selectTab('specimens')}>{siteContent.navigation.specimens}</button>
+		<button class:active={activeTab === 'chronicle'} aria-pressed={activeTab === 'chronicle'} onclick={() => selectTab('chronicle')}>{siteContent.navigation.chronicle}</button>
+		<button class:active={activeTab === 'about'} aria-pressed={activeTab === 'about'} onclick={() => selectTab('about')}>{siteContent.navigation.about}</button>
 	</nav>
 	<div class="scene tab-{activeTab}" class:discovered class:coming-soon={comingSoon}>
 		<aside>
-			<p>In a distant future, Earth's scientists and botanists have dedicated themselves to cataloging the flora of the universe to expand humanity's knowledge and preserve these extraordinary lifeforms.</p>
-			<p>To avoid disturbing fragile alien ecosystems, they observe them only from great distances. Advanced technologies allow them to analyze each organism's molecular composition, internal structure, and biological functions with remarkable precision. From these observations, perfect living clones can be recreated back on Earth.</p>
-			<p>Using advanced bio-organic engineering, specialized capsules are grown to reproduce each species' native environment, allowing these alien plants to thrive as if they had never left their home world.</p>
-			<p>Some of these organisms possess astonishing characteristics: impossible colors, mesmerizing geometries, complex symbiotic relationships, and perhaps most captivating of all, scents unlike anything ever experienced on Earth.</p>
-			<p>These indescribable fragrances have become an obsession for a new generation of master perfumers.</p>
+			{#if activeTab === 'about'}
+				<section class="about-block">
+					<h3>{siteContent.about.project.title}</h3>
+					<p>
+						{siteContent.about.project.description}
+						{' '}
+						<a
+							class="about-link"
+							href={siteContent.about.project.eventUrl}
+							target="_blank"
+							rel="noreferrer"
+						>{siteContent.about.project.eventLinkLabel}<span aria-hidden="true"> ↗</span></a
+						>
+					</p>
+				</section>
+				<section class="about-block">
+					<h3>{siteContent.about.purchase.title}</h3>
+					<p>{siteContent.about.purchase.description}</p>
+					<form
+						class="interest-form"
+						onsubmit={(event) => {
+							event.preventDefault();
+							interestSubmitted = true;
+						}}
+					>
+						<div class="interest-row">
+							<input
+								id="interest-email"
+								name="email"
+								type="email"
+								aria-label={siteContent.about.purchase.emailLabel}
+								autocomplete="email"
+								placeholder={siteContent.about.purchase.emailPlaceholder}
+								bind:value={interestEmail}
+								oninput={() => (interestSubmitted = false)}
+								required
+							/>
+							<button type="submit" aria-label={siteContent.about.purchase.submitLabel}>
+								<svg viewBox="0 0 24 24" aria-hidden="true">
+									<path d="m5 12.5 4.25 4.25L19 7" />
+								</svg>
+							</button>
+						</div>
+						{#if interestSubmitted}
+							<p class="interest-confirmation" aria-live="polite">{siteContent.about.purchase.confirmation}</p>
+						{/if}
+					</form>
+				</section>
+			{:else}
+				{#each siteContent.chronicle as paragraph}
+					<p>{paragraph}</p>
+				{/each}
+			{/if}
 		</aside>
 		<canvas class="voronoi-canvas" bind:this={canvas}></canvas>
+		<div class="grain-overlay" aria-hidden="true"></div>
 		<div class="card-stage">
 			<section class:coming-soon={comingSoon} class="card">
 				<div
 					class="capsule-image"
 					role="img"
-					aria-label="Xenoflora specimen capsule"
+					aria-label={siteContent.specimen.imageDescription}
 					style={`--capsule-image: url('${base}/images/xenoflora-capsule.png')`}
 				></div>
-				<p class="specimen-number">specimen 001</p>
-				<h2>xenoflora olfacta</h2>
-				<button class="discover" type="button" onclick={() => (discovered = true)}>discover</button>
-				<div class="coming-soon-label">coming soon</div>
+				<p class="specimen-number">specimen {siteContent.specimen.number}</p>
+				<h2>{siteContent.specimen.name}</h2>
+				<button class="discover" type="button" onclick={() => (discovered = true)}>{siteContent.actions.discover}</button>
+				<div class="coming-soon-label">{siteContent.actions.comingSoon}</div>
 			</section>
 			{#if comingSoon}
 				<button class="card-arrow previous" aria-label="Previous card" onclick={() => (comingSoon = false)}>‹</button>
@@ -352,12 +404,24 @@
 			{/if}
 		</div>
 		<section class="specimen-detail" aria-hidden={!discovered}>
-			<p class="detail-label">specimen 001</p>
-			<h3>xenoflora olfacta</h3>
-			<p>This specimen is a living reconstruction created by Earth’s scientists from observations made across interstellar distance. It was the first alien organism to capture the attention of master perfumers, transforming a botanical experiment into the beginning of an entirely new olfactory discipline.</p>
-			<p>Unlike terrestrial organisms, Xenoflora olfacta is a silicon-based lifeform. Its translucent tissues grow through mineral-like lattices that store light, regulate temperature, and sustain the delicate chemistry of its fragrance.</p>
-			<p>Its scent is distinctly aquatic: cool, saline, and luminous, with an unfamiliar mineral depth that recalls an ocean beneath another sky.</p>
-			<button class="close-detail" type="button" onclick={() => (discovered = false)}>close</button>
+			<p class="detail-label">specimen {siteContent.specimen.number}</p>
+			<h3>{siteContent.specimen.name}</h3>
+			{#each siteContent.specimen.description as paragraph}
+				<p>{paragraph}</p>
+			{/each}
+			<dl class="specimen-data">
+				{#each siteContent.specimen.data as item}
+					<div>
+						<dt>{item.label}</dt>
+						<dd>{item.value}</dd>
+					</div>
+				{/each}
+			</dl>
 		</section>
+		<button class="close-detail" type="button" aria-label={siteContent.actions.closeDetails} onclick={() => (discovered = false)}>
+			<svg viewBox="0 0 24 24" aria-hidden="true">
+				<path d="M5 5 19 19M19 5 5 19" />
+			</svg>
+		</button>
 	</div>
 </main>

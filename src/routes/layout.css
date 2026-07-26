@@ -143,35 +143,151 @@ main {
 	transition: opacity 220ms ease;
 }
 
-.scene.tab-about {
-	visibility: hidden;
-	opacity: 0;
-	pointer-events: none;
-}
-
 .scene.tab-specimens aside {
 	display: none;
 }
 
-.scene.tab-chronicle {
+.scene.tab-chronicle,
+.scene.tab-about {
 	justify-content: center;
 }
 
-.scene.tab-chronicle aside {
+.scene.tab-chronicle aside,
+.scene.tab-about aside {
 	width: min(680px, 72vw);
 	font-size: clamp(0.78rem, 1vw, 0.92rem);
 	line-height: 1.62;
 }
 
-.scene.tab-chronicle .card-stage {
+.scene.tab-chronicle .card-stage,
+.scene.tab-about .card-stage {
 	position: absolute;
 	visibility: hidden;
 	pointer-events: none;
 }
 
+.scene.tab-about aside {
+	display: grid;
+	gap: clamp(32px, 6vh, 58px);
+}
+
+.about-block h3 {
+	margin: 0 0 14px;
+	color: #d7edf6;
+	font-family: 'Syne', sans-serif;
+	font-size: clamp(1.25rem, 2.5vw, 1.8rem);
+	line-height: 1.05;
+	letter-spacing: -0.035em;
+}
+
+.about-block p {
+	max-width: 64ch;
+	color: rgba(215, 237, 246, 0.82);
+}
+
+.about-link {
+	display: inline;
+	padding-bottom: 3px;
+	border-bottom: 1px solid rgba(144, 216, 221, 0.55);
+	color: #90d8dd;
+	font: inherit;
+	text-decoration: none;
+	transition: border-color 180ms ease, color 180ms ease;
+}
+
+.about-link:hover {
+	border-color: #d7edf6;
+	color: #d7edf6;
+}
+
+.about-link:focus-visible {
+	border-color: transparent;
+	outline: 2px solid #90d8dd;
+	outline-offset: 4px;
+}
+
+.interest-form {
+	margin-top: 22px;
+}
+
+.interest-row {
+	display: flex;
+	width: min(100%, 430px);
+	height: 46px;
+	overflow: hidden;
+	border: 1px solid rgba(215, 237, 246, 0.42);
+	border-radius: 999px;
+	background: rgba(7, 26, 51, 0.28);
+	transition: border-color 180ms ease, background 180ms ease;
+}
+
+.interest-row:focus-within {
+	border-color: #90d8dd;
+	background: rgba(7, 26, 51, 0.48);
+}
+
+.interest-row input {
+	min-width: 0;
+	flex: 1;
+	height: 44px;
+	padding: 0 15px;
+	border: 0;
+	outline: 0;
+	background: transparent;
+	color: #d7edf6;
+	font: 600 0.72rem 'Syne', sans-serif;
+}
+
+.interest-row input::placeholder {
+	color: rgba(215, 237, 246, 0.42);
+}
+
+.interest-row button {
+	flex: 0 0 46px;
+	width: 46px;
+	height: 44px;
+	padding: 11px;
+	border: 0;
+	border-left: 1px solid rgba(215, 237, 246, 0.3);
+	background: transparent;
+	color: #90d8dd;
+	cursor: pointer;
+	transition: background 180ms ease, color 180ms ease;
+}
+
+.interest-row button svg {
+	display: block;
+	width: 100%;
+	height: 100%;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 1.8;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+.interest-row button:hover {
+	background: #90d8dd;
+	color: #071a33;
+}
+
+.interest-row button:focus-visible {
+	outline: 2px solid #90d8dd;
+	outline-offset: -4px;
+}
+
+.interest-confirmation {
+	margin: 10px 0 0 !important;
+	color: #90d8dd !important;
+	font-size: 0.68rem;
+}
+
 .scene.tab-chronicle .voronoi-canvas,
 .scene.tab-about .voronoi-canvas,
-.scene.coming-soon .voronoi-canvas {
+.scene.coming-soon .voronoi-canvas,
+.scene.tab-chronicle .grain-overlay,
+.scene.tab-about .grain-overlay,
+.scene.coming-soon .grain-overlay {
 	opacity: 0;
 	pointer-events: none;
 }
@@ -215,15 +331,14 @@ aside p:last-child {
 	transform: translate(-50%, -50%);
 }
 
-.voronoi-canvas {
+.voronoi-canvas,
+.grain-overlay {
 	position: fixed;
 	inset: 0;
 	z-index: -1;
-	display: block;
 	width: 100vw;
 	height: 100vh;
 	height: 100svh;
-	touch-action: none;
 	opacity: 1;
 	clip-path: inset(
 		calc(50svh + 37px - min(53.93vw, calc(100svh - 134px), 618px) / 2)
@@ -235,9 +350,32 @@ aside p:last-child {
 	transition: clip-path 750ms cubic-bezier(0.76, 0, 0.24, 1), opacity 350ms ease;
 }
 
-.scene.tab-specimens.discovered .voronoi-canvas {
+.voronoi-canvas {
+	display: block;
+	touch-action: none;
+}
+
+.grain-overlay {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='.72'/%3E%3C/svg%3E");
+	background-size: 160px 160px;
+	mix-blend-mode: soft-light;
+	opacity: 0.2;
+	pointer-events: none;
+}
+
+.scene.tab-specimens.discovered .voronoi-canvas,
+.scene.tab-specimens.discovered .grain-overlay {
 	clip-path: inset(0 round 0);
+}
+
+.scene.tab-specimens.discovered .voronoi-canvas {
 	opacity: 1;
+}
+
+.scene.tab-specimens.discovered .grain-overlay {
+	filter: contrast(175%);
+	mix-blend-mode: multiply;
+	opacity: 0.28;
 }
 
 .scene.tab-specimens.discovered .card-stage {
@@ -296,7 +434,7 @@ aside p:last-child {
 }
 
 .specimen-detail h3 {
-	margin: 0 0 24px;
+	margin: 0 0 20px;
 	color: #d7edf6;
 	font-family: 'Handjet', sans-serif;
 	font-size: clamp(2rem, 4vw, 3rem);
@@ -304,22 +442,86 @@ aside p:last-child {
 	letter-spacing: 0.015em;
 }
 
+.specimen-data {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 13px 22px;
+	margin: 0 0 24px;
+	padding: 16px 0;
+	border-top: 1px solid rgba(7, 26, 51, 0.18);
+	border-bottom: 1px solid rgba(7, 26, 51, 0.18);
+}
+
+.specimen-data div,
+.specimen-data dt,
+.specimen-data dd {
+	margin: 0;
+}
+
+.specimen-data dt {
+	margin-bottom: 3px;
+	color: #176ba9;
+	font-size: 0.52rem;
+	letter-spacing: 0.09em;
+	text-transform: uppercase;
+}
+
+.specimen-data dd {
+	color: rgba(7, 26, 51, 0.82);
+	font-size: clamp(0.62rem, 0.75vw, 0.7rem);
+	line-height: 1.35;
+}
+
 .specimen-detail p:not(.detail-label) {
 	margin: 0 0 1em;
 }
 
 .close-detail {
-	margin-top: 10px;
-	min-height: 44px;
-	padding: 10px 0 5px;
+	position: fixed;
+	top: 24px;
+	right: 24px;
+	z-index: 6;
+	display: grid;
+	width: 44px;
+	height: 44px;
+	padding: 10px;
+	place-items: center;
 	border: 0;
-	border-bottom: 1px solid #90d8dd;
 	background: transparent;
-	color: #90d8dd;
-	font: 600 0.68rem 'Syne', sans-serif;
-	letter-spacing: 0.04em;
+	color: #176ba9;
 	cursor: pointer;
-	transition: color 450ms ease, border-color 450ms ease;
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transition: color 180ms ease, opacity 180ms ease, transform 180ms ease, visibility 0s linear 180ms;
+}
+
+.close-detail svg {
+	display: block;
+	width: 24px;
+	height: 24px;
+	overflow: visible;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 1.6;
+	stroke-linecap: round;
+}
+
+.scene.tab-specimens.discovered .close-detail {
+	opacity: 1;
+	visibility: visible;
+	pointer-events: auto;
+	transition-delay: 0s;
+}
+
+.close-detail:hover {
+	color: #071a33;
+	transform: rotate(4deg) scale(1.06);
+}
+
+.close-detail:focus-visible {
+	outline: 2px solid #176ba9;
+	outline-offset: 2px;
 }
 
 .card {
@@ -612,8 +814,7 @@ main.discovered .specimen-detail h3 {
 	color: #071a33;
 }
 
-main.discovered .detail-label,
-main.discovered .close-detail {
+main.discovered .detail-label {
 	border-color: #176ba9;
 	color: #176ba9;
 }
@@ -673,8 +874,17 @@ main.discovered .close-detail {
 	}
 
 	.scene.tab-specimens.discovered .card-stage {
-		left: 50%;
-		transform: translateX(-50%);
+		position: relative;
+		top: auto;
+		left: auto;
+		z-index: 0;
+		width: min(76vw, 390px);
+		height: min(88vw, 420px);
+		transform: none;
+	}
+
+	.scene.tab-specimens.discovered .capsule-image {
+		transform: translate(-50%, -46%);
 	}
 
 	.specimen-detail {
@@ -688,7 +898,7 @@ main.discovered .close-detail {
 	}
 
 	.scene.tab-specimens.discovered .specimen-detail {
-		max-height: 900px;
+		max-height: 1400px;
 		transform: translateY(0);
 	}
 
@@ -697,11 +907,13 @@ main.discovered .close-detail {
 		font-size: 0.76rem;
 	}
 
-	.scene.tab-chronicle aside {
+	.scene.tab-chronicle aside,
+	.scene.tab-about aside {
 		width: min(100%, 520px);
 		font-size: 0.78rem;
 		line-height: 1.6;
 	}
+
 
 	.card-stage {
 		width: min(76vw, calc((100svh - 150px) * 0.6305), 390px);
@@ -715,7 +927,8 @@ main.discovered .close-detail {
 		transform: translateX(-50%);
 	}
 
-	.voronoi-canvas {
+	.voronoi-canvas,
+	.grain-overlay {
 		clip-path: inset(
 			136px
 			calc((100vw - min(76vw, calc((100svh - 150px) * 0.6305), 390px)) / 2)
@@ -725,7 +938,8 @@ main.discovered .close-detail {
 		);
 	}
 
-	.scene.tab-specimens.discovered .voronoi-canvas {
+	.scene.tab-specimens.discovered .voronoi-canvas,
+	.scene.tab-specimens.discovered .grain-overlay {
 		clip-path: inset(0 round 0);
 	}
 
@@ -748,11 +962,38 @@ main.discovered .close-detail {
 		height: min(79.3vw, calc(100svh - 132px), 476px);
 	}
 
+	.scene.tab-specimens.discovered .card-stage {
+		width: min(34vw, 250px);
+		height: min(43vw, 290px);
+	}
+
+	.card h2 {
+		top: 42px;
+		left: 18px;
+		max-width: 76%;
+		font-size: clamp(1.35rem, 4vw, 2rem);
+	}
+
+	.specimen-number {
+		top: 18px;
+		left: 18px;
+		font-size: 0.48rem;
+	}
+
+	.discover {
+		right: 14px;
+		bottom: 14px;
+		min-height: 38px;
+		padding: 8px 11px 7px;
+		font-size: 0.6rem;
+	}
+
 	.scene.tab-specimens .card-stage {
 		top: 112px;
 	}
 
-	.voronoi-canvas {
+	.voronoi-canvas,
+	.grain-overlay {
 		clip-path: inset(
 			112px
 			calc((100vw - min(50vw, calc((100svh - 132px) * 0.6305), 300px)) / 2)
@@ -762,7 +1003,8 @@ main.discovered .close-detail {
 		);
 	}
 
-	.scene.tab-specimens.discovered .voronoi-canvas {
+	.scene.tab-specimens.discovered .voronoi-canvas,
+	.scene.tab-specimens.discovered .grain-overlay {
 		clip-path: inset(0 round 0);
 	}
 }

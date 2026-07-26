@@ -196,6 +196,7 @@ aside p:last-child {
 }
 
 .card-stage {
+	--card-line: #d7edf6;
 	position: relative;
 	flex: 0 0 auto;
 	width: min(34vw, calc((100svh - 134px) * 0.6305), 390px);
@@ -204,8 +205,7 @@ aside p:last-child {
 		top 750ms cubic-bezier(0.76, 0, 0.24, 1),
 		left 750ms cubic-bezier(0.76, 0, 0.24, 1),
 		width 750ms cubic-bezier(0.76, 0, 0.24, 1),
-		height 750ms cubic-bezier(0.76, 0, 0.24, 1),
-		transform 750ms cubic-bezier(0.76, 0, 0.24, 1);
+		height 750ms cubic-bezier(0.76, 0, 0.24, 1);
 }
 
 .scene.tab-specimens .card-stage {
@@ -224,6 +224,7 @@ aside p:last-child {
 	height: 100vh;
 	height: 100svh;
 	touch-action: none;
+	opacity: 1;
 	clip-path: inset(
 		calc(50svh + 37px - min(53.93vw, calc(100svh - 134px), 618px) / 2)
 		calc((100vw - min(34vw, calc((100svh - 134px) * 0.6305), 390px)) / 2)
@@ -236,6 +237,7 @@ aside p:last-child {
 
 .scene.tab-specimens.discovered .voronoi-canvas {
 	clip-path: inset(0 round 0);
+	opacity: 1;
 }
 
 .scene.tab-specimens.discovered .card-stage {
@@ -248,9 +250,11 @@ aside p:last-child {
 	border: 0;
 	border-radius: 0;
 	box-shadow: none;
+	transition: border-radius 750ms cubic-bezier(0.76, 0, 0.24, 1);
 }
 
 .scene.tab-specimens.discovered .card h2,
+.scene.tab-specimens.discovered .specimen-number,
 .scene.tab-specimens.discovered .discover,
 .scene.tab-specimens.discovered .card-arrow {
 	opacity: 0;
@@ -323,14 +327,15 @@ aside p:last-child {
 	width: 100%;
 	height: 100%;
 	aspect-ratio: 0.6305 / 1;
-	border: 1px solid transparent;
+	border: 1px solid var(--card-line);
 	border-radius: 24px;
 	overflow: hidden;
 	box-sizing: border-box;
-	box-shadow:
-		0 28px 70px rgba(0, 6, 18, 0.42),
-		0 4px 16px rgba(0, 6, 18, 0.24);
-	transition: border-radius 750ms cubic-bezier(0.76, 0, 0.24, 1), box-shadow 500ms ease;
+	background: transparent;
+	box-shadow: none;
+	transition:
+		border-color 180ms ease,
+		border-radius 750ms cubic-bezier(0.76, 0, 0.24, 1);
 }
 
 .card {
@@ -345,11 +350,16 @@ aside p:last-child {
 	width: 90%;
 	aspect-ratio: 1122 / 1402;
 	transform: translate(-50%, -46%);
-	background: #3295da;
+	background: var(--card-line);
 	-webkit-mask: var(--capsule-image) center / contain no-repeat;
 	mask: var(--capsule-image) center / contain no-repeat;
 	pointer-events: none;
-	transition: opacity 400ms ease, transform 600ms ease;
+	transition: opacity 400ms ease, transform 600ms ease, background-color 450ms ease;
+}
+
+.scene.tab-specimens.discovered .capsule-image {
+	background-color: #176ba9;
+	transform: translate(-28%, -52%);
 }
 
 .card.coming-soon .capsule-image {
@@ -362,11 +372,13 @@ aside p:last-child {
 	pointer-events: auto;
 }
 
-.card h2 {
+.card h2,
+.specimen-number {
 	transition: filter 500ms ease, opacity 500ms ease;
 }
 
-.card.coming-soon h2 {
+.card.coming-soon h2,
+.card.coming-soon .specimen-number {
 	opacity: 0;
 }
 
@@ -379,27 +391,26 @@ aside p:last-child {
 	align-items: center;
 	padding: 10px 14px 9px;
 	min-height: 44px;
-	border: 1px solid rgba(7, 26, 51, 0.28);
+	border: 1px solid var(--card-line);
 	border-radius: 999px;
-	background: rgba(237, 244, 239, 0.72);
-	color: #176ba9;
+	background: transparent;
+	color: var(--card-line);
 	font-family: 'Syne', sans-serif;
 	font-size: 0.68rem;
 	font-weight: 600;
 	letter-spacing: 0.035em;
 	cursor: pointer;
-	backdrop-filter: blur(8px);
 	transition: color 180ms ease, background 180ms ease, transform 180ms ease, opacity 300ms ease;
 }
 
 .discover:hover {
-	background: #3295da;
-	color: #edf4ef;
+	background: transparent;
+	color: var(--card-line);
 	transform: translateY(-2px);
 }
 
 .discover:focus-visible {
-	outline: 2px solid #3295da;
+	outline: 2px solid var(--card-line);
 	outline-offset: 3px;
 }
 
@@ -409,7 +420,7 @@ aside p:last-child {
 }
 
 .card.coming-soon {
-	border-color: rgba(215, 237, 246, 0.42);
+	border-color: var(--card-line);
 	background: transparent;
 	box-shadow: none;
 }
@@ -423,7 +434,7 @@ aside p:last-child {
 	font-size: clamp(1.25rem, 3vw, 1.7rem);
 	font-weight: 600;
 	letter-spacing: -0.035em;
-	color: #e4e8e6;
+	color: var(--card-line);
 	opacity: 0;
 	transition: opacity 500ms ease;
 	pointer-events: none;
@@ -440,19 +451,19 @@ aside p:last-child {
 	transform: translateY(-50%);
 	border: 0;
 	background: transparent;
-	color: #90d8dd;
+	color: var(--card-line);
 	font: 300 3rem/1 sans-serif;
 	cursor: pointer;
 	transition: color 180ms ease, transform 180ms ease;
 }
 
 .card-arrow:hover {
-	color: #d7edf6;
+	color: var(--card-line);
 	transform: translateY(-50%) scale(1.06);
 }
 
 .card-arrow:focus-visible {
-	outline: 2px solid #90d8dd;
+	outline: 2px solid var(--card-line);
 	outline-offset: 4px;
 }
 
@@ -548,7 +559,7 @@ h1 {
 
 h2 {
 	position: absolute;
-	top: 30px;
+	top: 51px;
 	left: 30px;
 	z-index: 1;
 	max-width: 65%;
@@ -556,8 +567,23 @@ h2 {
 	font-size: clamp(2rem, 6vw, 3rem);
 	line-height: 0.9;
 	letter-spacing: 0.015em;
-	color: #3295da;
-	text-shadow: 3px 3px 0 #90d8dd;
+	color: var(--card-line);
+	text-shadow: none;
+	pointer-events: none;
+}
+
+.specimen-number {
+	position: absolute;
+	top: 28px;
+	left: 30px;
+	z-index: 2;
+	margin: 0;
+	color: var(--card-line);
+	font-family: 'Syne', sans-serif;
+	font-size: 0.58rem;
+	font-weight: 600;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
 	pointer-events: none;
 }
 

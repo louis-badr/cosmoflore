@@ -10,6 +10,11 @@
 	let activeTab = $state<'specimens' | 'chronicle' | 'about'>('specimens');
 	let discovered = $state(false);
 
+	function selectTab(tab: 'specimens' | 'chronicle' | 'about') {
+		if (tab !== 'specimens') discovered = false;
+		activeTab = tab;
+	}
+
 	onMount(() => {
 		const maybeContext = canvas.getContext('2d');
 		if (!maybeContext) return;
@@ -22,6 +27,7 @@
 		let cells: Cell[] = [];
 		let time = 0;
 		const pointer = { x: 0, y: 0, active: false };
+		const discoveredPalette = ['#c7e5ee', '#acd8e8', '#78bedf'];
 
 		const random = (seed: number) => {
 			const value = Math.sin(seed * 91.17) * 43758.5453;
@@ -43,7 +49,7 @@
 		};
 
 		function makeCells() {
-			const spacing = Math.max(128, Math.min(190, Math.sqrt((width * height) / 32)));
+			const spacing = Math.max(150, Math.min(230, Math.sqrt((width * height) / 24)));
 			const margin = spacing * 1.35;
 			const sampleWidth = width + margin * 2;
 			const sampleHeight = height + margin * 2;
@@ -51,11 +57,15 @@
 			const next: Cell[] = [];
 
 			for (let attempt = 0; attempt < attempts; attempt += 1) {
-				const seed = attempt * 17 + 101;
+				const isLargeAnchor = attempt < 10;
+				const seed = isLargeAnchor ? attempt * 997 + 211 : attempt * 17 + 101;
 				const homeX = -margin + random(seed) * sampleWidth;
 				const homeY = -margin + random(seed + 5) * sampleHeight;
 				const density = valueNoise(homeX / (spacing * 2.8), homeY / (spacing * 2.8), 149);
-				const minDistance = spacing * (0.48 + density * 0.42);
+				const localScale = random(seed + 23);
+				const minDistance = isLargeAnchor
+					? spacing * (1.5 + localScale * 0.65)
+					: spacing * (0.2 + density * 0.36 + localScale ** 1.8 * 0.78);
 				const hasRoom = next.every(
 					(other) => Math.hypot(homeX - other.homeX, homeY - other.homeY) >= Math.max(minDistance, other.minDistance)
 				);
@@ -128,7 +138,36 @@
 			return polygon;
 		}
 
-		function roundedPolygon(points: Point[]) {
+		function cleanPolygon(points: Point[]) {
+			const minimumEdgeLength = 18;
+			const cleaned = [...points];
+
+			while (cleaned.length > 3) {
+				let shortestEdge = Number.POSITIVE_INFINITY;
+				let shortestEdgeEnd = -1;
+
+				for (let index = 0; index < cleaned.length; index += 1) {
+					const nextIndex = (index + 1) % cleaned.length;
+					const edgeLength = Math.hypot(
+						cleaned[nextIndex].x - cleaned[index].x,
+						cleaned[nextIndex].y - cleaned[index].y
+					);
+
+					if (edgeLength < shortestEdge) {
+						shortestEdge = edgeLength;
+						shortestEdgeEnd = nextIndex;
+					}
+				}
+
+				if (shortestEdge >= minimumEdgeLength) break;
+				cleaned.splice(shortestEdgeEnd, 1);
+			}
+
+			return cleaned;
+		}
+
+		function roundedPolygon(rawPoints: Point[]) {
+			const points = cleanPolygon(rawPoints);
 			if (points.length < 3) return;
 			const corners = points.map((point, index) => {
 				const previous = points[(index + points.length - 1) % points.length];
@@ -174,8 +213,10 @@
 		function draw() {
 			time += 0.012;
 			context.clearRect(0, 0, width, height);
-			context.fillStyle = '#f7f5ef';
-			context.fillRect(0, 0, width, height);
+			if (discovered) {
+				context.fillStyle = '#f7f5ef';
+				context.fillRect(0, 0, width, height);
+			}
 
 			for (const cell of cells) {
 				const driftX = Math.cos(time + cell.phase) * 2.5;
@@ -188,29 +229,52 @@
 					const dy = cell.homeY - pointer.y;
 					const distance = Math.max(1, Math.hypot(dx, dy));
 					const influence = Math.max(0, 1 - distance / 300) ** 2;
-					targetX += (dx / distance) * influence * 68;
-					targetY += (dy / distance) * influence * 68;
+					const maximumShift = Math.min(68, Math.max(16, cell.minDistance * 0.55));
+					targetX += (dx / distance) * influence * maximumShift;
+					targetY += (dy / distance) * influence * maximumShift;
 				}
 
 				cell.x += (targetX - cell.x) * 0.075;
 				cell.y += (targetY - cell.y) * 0.075;
 			}
 
-			for (const cell of cells) {
-				const polygon = polygonFor(cell);
-				if (polygon.length < 3) continue;
+			for (let firstIndex = 0; firstIndex < cells.length; firstIndex += 1) {
+				for (let secondIndex = firstIndex + 1; secondIndex < cells.length; secondIndex += 1) {
+					const first = cells[firstIndex];
+					const second = cells[secondIndex];
+					const dx = second.x - first.x;
+					const dy = second.y - first.y;
+					const distance = Math.max(0.001, Math.hypot(dx, dy));
+					const safeDistance = Math.max(18, Math.min(first.minDistance, second.minDistance) * 0.55);
 
+					if (distance < safeDistance) {
+						const correction = (safeDistance - distance) / 2;
+						const normalX = dx / distance;
+						const normalY = dy / distance;
+						first.x -= normalX * correction;
+						first.y -= normalY * correction;
+						second.x += normalX * correction;
+						second.y += normalY * correction;
+					}
+				}
+			}
+
+			const visibleCells = cells
+				.map((cell) => ({ cell, polygon: polygonFor(cell) }))
+				.filter(({ polygon }) => polygon.length >= 3);
+
+			for (const { cell, polygon } of visibleCells) {
 				const distance = pointer.active ? Math.hypot(cell.x - pointer.x, cell.y - pointer.y) : 999;
 				const glow = Math.max(0, 1 - distance / 270);
 				roundedPolygon(polygon);
 				const tone = (Math.sin(cell.phase) + 1) / 2;
-				const baseRed = 191 + tone * 16;
-				const baseGreen = 229 - tone;
-				const baseBlue = 234 + tone * 10;
-				context.fillStyle = `rgb(${Math.round(baseRed + (120 - baseRed) * glow)}, ${Math.round(baseGreen + (190 - baseGreen) * glow)}, ${Math.round(baseBlue + (223 - baseBlue) * glow)})`;
-				context.fill();
-				context.strokeStyle = '#f7f5ef';
-				context.lineWidth = 18;
+				if (discovered) {
+					const paletteIndex = glow > 0.2 ? 2 : tone > 0.5 ? 1 : 0;
+					context.fillStyle = discoveredPalette[paletteIndex];
+					context.fill();
+				}
+				context.strokeStyle = discovered ? '#f7f5ef' : '#7896a8';
+				context.lineWidth = discovered ? 18 : 1;
 				context.lineJoin = 'round';
 				context.lineCap = 'round';
 				context.stroke();
@@ -220,9 +284,8 @@
 		}
 
 		function movePointer(event: PointerEvent) {
-			const bounds = canvas.getBoundingClientRect();
-			pointer.x = (event.clientX - bounds.left) * (width / bounds.width);
-			pointer.y = (event.clientY - bounds.top) * (height / bounds.height);
+			pointer.x = event.clientX;
+			pointer.y = event.clientY;
 			pointer.active = true;
 		}
 
@@ -232,17 +295,17 @@
 
 		resize();
 		window.addEventListener('resize', resize);
-		canvas.addEventListener('pointermove', movePointer, { passive: true });
-		canvas.addEventListener('pointerdown', movePointer, { passive: true });
-		canvas.addEventListener('pointerleave', leavePointer);
+		window.addEventListener('pointermove', movePointer, { passive: true });
+		window.addEventListener('pointerdown', movePointer, { passive: true });
+		window.addEventListener('pointerleave', leavePointer);
 		draw();
 
 		return () => {
 			cancelAnimationFrame(animationFrame);
 			window.removeEventListener('resize', resize);
-			canvas.removeEventListener('pointermove', movePointer);
-			canvas.removeEventListener('pointerdown', movePointer);
-			canvas.removeEventListener('pointerleave', leavePointer);
+			window.removeEventListener('pointermove', movePointer);
+			window.removeEventListener('pointerdown', movePointer);
+			window.removeEventListener('pointerleave', leavePointer);
 		};
 	});
 </script>
@@ -252,13 +315,13 @@
 	<meta name="theme-color" content="#071a33" />
 </svelte:head>
 
-<main class:discovered>
+<main class:discovered={activeTab === 'specimens' && discovered}>
 	<div class="night-sky" aria-hidden="true"><i></i><i></i><i></i></div>
 	<h1>cosmoflore</h1>
 	<nav class="tabs" aria-label="Main sections">
-		<button class:active={activeTab === 'specimens'} aria-pressed={activeTab === 'specimens'} onclick={() => (activeTab = 'specimens')}>specimens</button>
-		<button class:active={activeTab === 'chronicle'} aria-pressed={activeTab === 'chronicle'} onclick={() => (activeTab = 'chronicle')}>chronicle</button>
-		<button class:active={activeTab === 'about'} aria-pressed={activeTab === 'about'} onclick={() => (activeTab = 'about')}>about</button>
+		<button class:active={activeTab === 'specimens'} aria-pressed={activeTab === 'specimens'} onclick={() => selectTab('specimens')}>specimens</button>
+		<button class:active={activeTab === 'chronicle'} aria-pressed={activeTab === 'chronicle'} onclick={() => selectTab('chronicle')}>chronicle</button>
+		<button class:active={activeTab === 'about'} aria-pressed={activeTab === 'about'} onclick={() => selectTab('about')}>about</button>
 	</nav>
 	<div class="scene tab-{activeTab}" class:discovered class:coming-soon={comingSoon}>
 		<aside>
@@ -277,6 +340,7 @@
 					aria-label="Xenoflora specimen capsule"
 					style={`--capsule-image: url('${base}/images/xenoflora-capsule.png')`}
 				></div>
+				<p class="specimen-number">specimen 001</p>
 				<h2>xenoflora olfacta</h2>
 				<button class="discover" type="button" onclick={() => (discovered = true)}>discover</button>
 				<div class="coming-soon-label">coming soon</div>

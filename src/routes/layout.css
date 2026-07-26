@@ -850,8 +850,12 @@ main.discovered .detail-label {
 }
 
 @media (max-width: 820px), (max-height: 560px) {
+	html,
 	body {
-		overflow: auto;
+		height: auto;
+		overflow-x: hidden;
+		overflow-y: auto;
+		-webkit-overflow-scrolling: touch;
 	}
 
 	main {
@@ -864,6 +868,10 @@ main.discovered .detail-label {
 
 	.night-sky {
 		position: fixed;
+	}
+
+	.voronoi-canvas {
+		touch-action: pan-y;
 	}
 
 	.scene {
@@ -922,9 +930,9 @@ main.discovered .detail-label {
 	}
 
 	.scene.tab-specimens .card-stage {
-		top: 136px;
+		top: 50svh;
 		left: 50%;
-		transform: translateX(-50%);
+		transform: translate(-50%, -50%);
 	}
 
 	.voronoi-canvas,
@@ -989,7 +997,7 @@ main.discovered .detail-label {
 	}
 
 	.scene.tab-specimens .card-stage {
-		top: 112px;
+		top: 50svh;
 	}
 
 	.voronoi-canvas,
